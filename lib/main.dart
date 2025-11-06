@@ -1,8 +1,9 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'dart:async';
 
 void main() {
-  runApp(SoulSupportApp());
+  runApp(const SoulSupportApp());
 }
 
 class SoulSupportApp extends StatelessWidget {
@@ -38,7 +39,9 @@ class SoulSupportApp extends StatelessWidget {
         ),
       ),
       routes: {
-        '/': (_) => const DashboardPage(),
+        '/': (_) => const SplashScreen(),
+        '/onboarding': (_) => const OnboardingPage(),
+        '/dashboard': (_) => const DashboardPage(),
         '/profile': (_) => const ProfilePage(),
         '/about': (_) => const AboutPage(),
         '/terms': (_) => const TermsPage(),
@@ -53,14 +56,320 @@ class SoulSupportApp extends StatelessWidget {
 
 /* ---------- Palette ---------- */
 class _Palette {
-  static const primary = Color(0xFF6C63FF); // Main purple from login
-  static const accent = Color(0xFF53F3F5); // Bright aqua accent
-  static const bg = Color(0xFFFBFAFF); // Very light background
-  static const cardBg = Color(0xFFFFFFFF); // White card background
-  static const text = Color(0xFF0F1724); // Dark blue text
-  static const subtext = Color(0xFF6B7280); // Muted text
-  static const soft = Color(0xFFEDEBFF); // Light primary for containers
-  static const border = Color(0xFFF2F0FF); // Surface variant
+  static const primary = Color(
+    0xFF8B5FBF,
+  ); // Calm lavender - promotes tranquility
+  static const accent = Color(0xFF4AC6B7); // Soft teal - mental clarity
+  static const bg = Color(0xFFFDFBFF); // Serene white background
+  static const cardBg = Color(0xFFFFFFFF); // Pure white for readability
+  static const text = Color(0xFF1A1B41); // Deep indigo - gentle contrast
+  static const subtext = Color(0xFF6B6B8E); // Muted purple - secondary info
+  static const soft = Color(0xFFF0EBFF); // Light lavender - gentle highlighting
+  static const border = Color(0xFFF5F3FF); // Barely purple - subtle dividers
+}
+
+/* ---------- 1. SPLASH SCREEN ---------- */
+class SplashScreen extends StatefulWidget {
+  const SplashScreen({super.key});
+
+  @override
+  State<SplashScreen> createState() => _SplashScreenState();
+}
+
+class _SplashScreenState extends State<SplashScreen>
+    with SingleTickerProviderStateMixin {
+  late AnimationController _animationController;
+  late Animation<double> _fadeAnimation;
+  late Animation<double> _scaleAnimation;
+
+  @override
+  void initState() {
+    super.initState();
+    _animationController = AnimationController(
+      vsync: this,
+      duration: const Duration(seconds: 2),
+    );
+
+    _fadeAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
+      CurvedAnimation(parent: _animationController, curve: Curves.easeIn),
+    );
+
+    _scaleAnimation = Tween<double>(begin: 0.5, end: 1.0).animate(
+      CurvedAnimation(parent: _animationController, curve: Curves.easeOut),
+    );
+
+    _animationController.forward();
+
+    // Navigate to onboarding after 3 seconds
+    Timer(const Duration(seconds: 3), () {
+      if (mounted) {
+        Navigator.pushReplacementNamed(context, '/onboarding');
+      }
+    });
+  }
+
+  @override
+  void dispose() {
+    _animationController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      body: Container(
+        decoration: const BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+            colors: [
+              Color(0xFF8B5FBF), // Calm lavender
+              Color(0xFF4AC6B7), // Soft teal
+            ],
+          ),
+        ),
+        child: Center(
+          child: FadeTransition(
+            opacity: _fadeAnimation,
+            child: ScaleTransition(
+              scale: _scaleAnimation,
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Container(
+                    width: 140,
+                    height: 140,
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      shape: BoxShape.circle,
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withOpacity(0.2),
+                          blurRadius: 20,
+                          spreadRadius: 5,
+                        ),
+                      ],
+                    ),
+                    child: ClipOval(
+                      child: Padding(
+                        padding: const EdgeInsets.all(20),
+                        child: Image.asset(
+                          'lib/images/img.png',
+                          fit: BoxFit.contain,
+                        ),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 30),
+                  const Text(
+                    'Soul Support',
+                    style: TextStyle(
+                      fontSize: 36,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.white,
+                      letterSpacing: 1.5,
+                    ),
+                  ),
+                  const SizedBox(height: 10),
+                  const Text(
+                    'Because every mind deserves peace.',
+                    style: TextStyle(
+                      fontSize: 16,
+                      color: Colors.white70,
+                      fontStyle: FontStyle.italic,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+/* ---------- 2. ONBOARDING PAGE ---------- */
+class OnboardingPage extends StatefulWidget {
+  const OnboardingPage({super.key});
+
+  @override
+  State<OnboardingPage> createState() => _OnboardingPageState();
+}
+
+class _OnboardingPageState extends State<OnboardingPage> {
+  final PageController _pageController = PageController();
+  int _currentPage = 0;
+
+  final List<Map<String, String>> _slides = [
+    {
+      'title': 'Understand Your Emotions',
+      'subtitle': 'Track your mood and reflect each day.',
+      'icon': 'sentiment_satisfied_alt',
+    },
+    {
+      'title': 'Connect Confidentially',
+      'subtitle': 'Chat with verified counsellors anytime.',
+      'icon': 'verified_user',
+    },
+    {
+      'title': 'Grow Mindfully',
+      'subtitle': 'Relax, journal, and recharge your soul.',
+      'icon': 'self_improvement',
+    },
+  ];
+
+  IconData _getIcon(String iconName) {
+    switch (iconName) {
+      case 'sentiment_satisfied_alt':
+        return Icons.sentiment_satisfied_alt;
+      case 'verified_user':
+        return Icons.verified_user;
+      case 'self_improvement':
+        return Icons.self_improvement;
+      default:
+        return Icons.favorite;
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      body: Container(
+        decoration: const BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: [Color(0xFFEDEBFF), Color(0xFFFBFAFF)],
+          ),
+        ),
+        child: SafeArea(
+          child: Column(
+            children: [
+              Expanded(
+                child: PageView.builder(
+                  controller: _pageController,
+                  onPageChanged: (index) {
+                    setState(() {
+                      _currentPage = index;
+                    });
+                  },
+                  itemCount: _slides.length,
+                  itemBuilder: (context, index) {
+                    return Padding(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 24.0,
+                        vertical: 20.0,
+                      ),
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Container(
+                            width: 120,
+                            height: 120,
+                            decoration: BoxDecoration(
+                              color: _Palette.primary.withOpacity(0.1),
+                              shape: BoxShape.circle,
+                            ),
+                            child: Icon(
+                              _getIcon(_slides[index]['icon']!),
+                              size: 60,
+                              color: _Palette.primary,
+                            ),
+                          ),
+                          const SizedBox(height: 30),
+                          Text(
+                            _slides[index]['title']!,
+                            style: const TextStyle(
+                              fontSize: 24,
+                              fontWeight: FontWeight.bold,
+                              color: _Palette.text,
+                            ),
+                            textAlign: TextAlign.center,
+                          ),
+                          const SizedBox(height: 12),
+                          Text(
+                            _slides[index]['subtitle']!,
+                            style: const TextStyle(
+                              fontSize: 15,
+                              color: _Palette.subtext,
+                            ),
+                            textAlign: TextAlign.center,
+                          ),
+                        ],
+                      ),
+                    );
+                  },
+                ),
+              ),
+              const SizedBox(height: 20),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: List.generate(
+                  _slides.length,
+                  (index) => Container(
+                    margin: const EdgeInsets.symmetric(horizontal: 4),
+                    width: _currentPage == index ? 24 : 8,
+                    height: 8,
+                    decoration: BoxDecoration(
+                      color: _currentPage == index
+                          ? _Palette.primary
+                          : _Palette.primary.withOpacity(0.3),
+                      borderRadius: BorderRadius.circular(4),
+                    ),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 20),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 30),
+                child: SizedBox(
+                  width: double.infinity,
+                  height: 52,
+                  child: ElevatedButton(
+                    onPressed: () {
+                      if (_currentPage < _slides.length - 1) {
+                        _pageController.nextPage(
+                          duration: const Duration(milliseconds: 300),
+                          curve: Curves.easeInOut,
+                        );
+                      } else {
+                        Navigator.pushReplacementNamed(context, '/dashboard');
+                      }
+                    },
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: _Palette.primary,
+                      foregroundColor: Colors.white,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(16),
+                      ),
+                      elevation: 0,
+                    ),
+                    child: Text(
+                      _currentPage < _slides.length - 1
+                          ? 'Next'
+                          : 'Get Started',
+                      style: const TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 20),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  @override
+  void dispose() {
+    _pageController.dispose();
+    super.dispose();
+  }
 }
 
 /* ---------- Dashboard Page ---------- */
@@ -256,7 +565,7 @@ class _DashboardPageState extends State<DashboardPage> {
                       const SizedBox(height: 12),
 
                       Card(
-                        color: const Color.fromARGB(255, 220, 227, 133),
+                        color: Colors.white,
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(16),
                         ),
@@ -270,6 +579,28 @@ class _DashboardPageState extends State<DashboardPage> {
                                     MainAxisAlignment.spaceAround,
                                 children: List.generate(5, (i) {
                                   final idx = i + 1;
+                                  final colors = [
+                                    [
+                                      Color(0xFFFEE3E2),
+                                      Color(0xFFFFB7B6),
+                                    ], // Sad
+                                    [
+                                      Color(0xFFE8EAF2),
+                                      Color(0xFFCED3E5),
+                                    ], // Unhappy
+                                    [
+                                      Color(0xFFF5F3FF),
+                                      Color(0xFFE9E5FF),
+                                    ], // Neutral
+                                    [
+                                      Color(0xFFE2F5EA),
+                                      Color(0xFFBFE5CE),
+                                    ], // Happy
+                                    [
+                                      Color(0xFFFFECB8),
+                                      Color(0xFFFFE08C),
+                                    ], // Very Happy
+                                  ][i];
                                   final emoji = [
                                     '😢',
                                     '😞',
@@ -293,11 +624,32 @@ class _DashboardPageState extends State<DashboardPage> {
                                     child: Column(
                                       children: [
                                         const SizedBox(height: 2),
-                                        Text(
-                                          emoji,
-                                          style: const TextStyle(
-                                            fontSize: 24,
-                                            color: Colors.black,
+                                        Container(
+                                          padding: const EdgeInsets.all(8),
+                                          decoration: BoxDecoration(
+                                            gradient: LinearGradient(
+                                              begin: Alignment.topLeft,
+                                              end: Alignment.bottomRight,
+                                              colors: colors,
+                                            ),
+                                            borderRadius: BorderRadius.circular(
+                                              12,
+                                            ),
+                                            boxShadow: [
+                                              BoxShadow(
+                                                color: colors[0].withOpacity(
+                                                  0.3,
+                                                ),
+                                                blurRadius: 8,
+                                                spreadRadius: 1,
+                                              ),
+                                            ],
+                                          ),
+                                          child: Text(
+                                            emoji,
+                                            style: const TextStyle(
+                                              fontSize: 24,
+                                            ),
                                           ),
                                         ),
                                         const SizedBox(height: 6),
@@ -422,7 +774,7 @@ class _DashboardPageState extends State<DashboardPage> {
                             icon: Icons.person_outline,
                             title: 'Expert Connect',
                             subtitle: 'Find Counsellor',
-                            iconColor: Colors.deepOrange,
+                            iconColor: const Color.fromARGB(255, 194, 35, 212),
                             onTap: () => _openFeature('Expert Connect'),
                           ),
                           _QuickCard(
@@ -443,7 +795,7 @@ class _DashboardPageState extends State<DashboardPage> {
                             icon: Icons.groups_outlined,
                             title: 'Support Groups',
                             subtitle: 'Join Community',
-                            iconColor: _Palette.accent,
+                            iconColor: const Color.fromARGB(255, 23, 88, 157),
                             onTap: () => _openFeature('Support Groups'),
                           ),
                         ],
@@ -582,6 +934,11 @@ class _DashboardPageState extends State<DashboardPage> {
               () => _openFeature('Professional Guidance'),
             ),
             const Divider(),
+            _drawerTile(
+              'Settings',
+              Icons.settings,
+              () {}, // Settings page removed, kept for future implementation
+            ),
             _drawerTile(
               'About Us',
               Icons.info,
@@ -905,7 +1262,12 @@ class WalletSheet extends StatefulWidget {
 }
 
 class _WalletSheetState extends State<WalletSheet> {
-  int _amount = 10;
+  // _money holds the selected cash amount (e.g. 100, 200, 300)
+  int _money = 100;
+  final TextEditingController _customCtrl = TextEditingController();
+
+  // Conversion: 1 money unit = 0.1 minute. We use minutes = money ~/ 10 so
+  // ₹100 -> 10 minutes, ₹200 -> 20 minutes, etc. (assumption; adjust if needed)
   @override
   Widget build(BuildContext context) {
     return Container(
@@ -918,37 +1280,84 @@ class _WalletSheetState extends State<WalletSheet> {
             'Wallet',
             style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
           ),
-          const SizedBox(height: 8),
-          Text('Talk-time balance: ${widget.minutes} minutes'),
           const SizedBox(height: 12),
-          const Text('Recharge options:'),
+          const Text('Add cash to your wallet:'),
           const SizedBox(height: 8),
           Wrap(
             spacing: 8,
-            children: [10, 20, 30, 60].map((e) {
-              final selected = _amount == e;
+            children: [100, 200, 300].map((e) {
+              final selected = _money == e;
               return ChoiceChip(
-                label: Text('$e min'),
+                label: Text('₹$e'),
                 selected: selected,
-                onSelected: (_) => setState(() => _amount = e),
+                onSelected: (_) => setState(() {
+                  _money = e;
+                  _customCtrl.clear();
+                }),
                 selectedColor: _Palette.primary,
               );
             }).toList(),
           ),
+
+          const SizedBox(height: 10),
+          Row(
+            children: [
+              Expanded(
+                child: TextField(
+                  controller: _customCtrl,
+                  keyboardType: TextInputType.number,
+                  style: const TextStyle(color: Colors.white),
+                  cursorColor: _Palette.primary,
+                  decoration: const InputDecoration(
+                    hintText: 'Custom amount (e.g. 150)',
+                    hintStyle: TextStyle(color: Colors.white54),
+                    border: OutlineInputBorder(),
+                    isDense: true,
+                    contentPadding: EdgeInsets.symmetric(
+                      horizontal: 12,
+                      vertical: 12,
+                    ),
+                  ),
+                  onChanged: (v) {
+                    final parsed = int.tryParse(v) ?? 0;
+                    if (parsed > 0) setState(() => _money = parsed);
+                  },
+                ),
+              ),
+              const SizedBox(width: 8),
+              TextButton(
+                onPressed: () {
+                  _customCtrl.clear();
+                  setState(() => _money = 100);
+                },
+                child: const Text('Reset'),
+              ),
+            ],
+          ),
+
           const Spacer(),
           SizedBox(
             width: double.infinity,
             child: ElevatedButton(
-              onPressed: () => widget.onRecharge(_amount),
+              onPressed: () {
+                final minutesToAdd = (_money ~/ 10).clamp(1, 1000000);
+                widget.onRecharge(minutesToAdd);
+              },
               style: ElevatedButton.styleFrom(
                 backgroundColor: _Palette.primary,
               ),
-              child: Text('Recharge $_amount min'),
+              child: Text('Recharge ₹$_money'),
             ),
           ),
         ],
       ),
     );
+  }
+
+  @override
+  void dispose() {
+    _customCtrl.dispose();
+    super.dispose();
   }
 }
 
@@ -1752,23 +2161,25 @@ class _ProfilePageState extends State<ProfilePage> {
 
   final _formKey = GlobalKey<FormState>();
 
-  final _nameCtrl = TextEditingController();
+  final _firstNameCtrl = TextEditingController();
+  final _middleNameCtrl = TextEditingController();
+  final _lastNameCtrl = TextEditingController();
   final _emailCtrl = TextEditingController();
   final _phoneCtrl = TextEditingController();
   final _ageCtrl = TextEditingController();
   String _gender = '';
-  String _preferences = '';
 
   int _calcCompletion() {
     final fields = [
-      _nameCtrl.text,
+      _firstNameCtrl.text,
+      _middleNameCtrl.text,
+      _lastNameCtrl.text,
       _emailCtrl.text,
       _phoneCtrl.text,
       _ageCtrl.text,
       _gender,
-      _preferences,
     ];
-    final filled = fields.where((s) => s.trim().isNotEmpty).length;
+    final filled = fields.where((s) => s.isNotEmpty).length;
     return ((filled / fields.length) * 100).round();
   }
 
@@ -1780,19 +2191,24 @@ class _ProfilePageState extends State<ProfilePage> {
       profile = (args is Map<String, dynamic>)
           ? Map<String, dynamic>.from(args)
           : {};
-      _nameCtrl.text = profile['name'] ?? '';
+      final fullName = profile['name'] ?? '';
+      final nameParts = fullName.split(' ');
+      _firstNameCtrl.text = nameParts.isNotEmpty ? nameParts[0] : '';
+      _middleNameCtrl.text = nameParts.length > 2 ? nameParts[1] : '';
+      _lastNameCtrl.text = nameParts.length > 1 ? nameParts.last : '';
       _emailCtrl.text = profile['email'] ?? '';
       _phoneCtrl.text = profile['phone'] ?? '';
       _ageCtrl.text = profile['age']?.toString() ?? '';
       _gender = profile['gender'] ?? '';
-      _preferences = profile['preferences'] ?? '';
       _initialized = true;
     }
   }
 
   @override
   void dispose() {
-    _nameCtrl.dispose();
+    _firstNameCtrl.dispose();
+    _middleNameCtrl.dispose();
+    _lastNameCtrl.dispose();
     _emailCtrl.dispose();
     _phoneCtrl.dispose();
     _ageCtrl.dispose();
@@ -1801,13 +2217,18 @@ class _ProfilePageState extends State<ProfilePage> {
 
   void _saveProfile() {
     if (_formKey.currentState!.validate()) {
+      final fullName = [
+        _firstNameCtrl.text,
+        _middleNameCtrl.text,
+        _lastNameCtrl.text,
+      ].where((s) => s.isNotEmpty).join(' ');
+
       final updated = {
-        'name': _nameCtrl.text,
+        'name': fullName,
         'email': _emailCtrl.text,
         'phone': _phoneCtrl.text,
         'age': int.tryParse(_ageCtrl.text),
         'gender': _gender,
-        'preferences': _preferences,
       };
       Navigator.pop(context, updated);
       ScaffoldMessenger.of(
@@ -1851,14 +2272,20 @@ class _ProfilePageState extends State<ProfilePage> {
               radius: 36,
               backgroundColor: const Color.fromARGB(255, 85, 68, 239),
               child: Text(
-                _nameCtrl.text.isNotEmpty
-                    ? _nameCtrl.text[0].toUpperCase()
+                _firstNameCtrl.text.isNotEmpty
+                    ? _firstNameCtrl.text[0].toUpperCase()
                     : 'U',
               ),
             ),
             const SizedBox(height: 10),
             Text(
-              _nameCtrl.text.isNotEmpty ? _nameCtrl.text : 'Your Name',
+              _firstNameCtrl.text.isNotEmpty
+                  ? [
+                      _firstNameCtrl.text,
+                      _middleNameCtrl.text,
+                      _lastNameCtrl.text,
+                    ].where((s) => s.isNotEmpty).join(' ')
+                  : 'Your Name',
               style: const TextStyle(
                 fontSize: 18,
                 fontWeight: FontWeight.bold,
@@ -1903,10 +2330,24 @@ class _ProfilePageState extends State<ProfilePage> {
                       ),
                     ),
                     TextFormField(
-                      controller: _nameCtrl,
-                      decoration: _inputDecoration('Full Name'),
-                      validator: (v) =>
-                          v == null || v.trim().isEmpty ? 'Enter name' : null,
+                      controller: _firstNameCtrl,
+                      decoration: _inputDecoration('First Name'),
+                      validator: (v) => v == null || v.trim().isEmpty
+                          ? 'Enter first name'
+                          : null,
+                    ),
+                    const SizedBox(height: 10),
+                    TextFormField(
+                      controller: _middleNameCtrl,
+                      decoration: _inputDecoration('Middle Name'),
+                    ),
+                    const SizedBox(height: 10),
+                    TextFormField(
+                      controller: _lastNameCtrl,
+                      decoration: _inputDecoration('Last Name'),
+                      validator: (v) => v == null || v.trim().isEmpty
+                          ? 'Enter last name'
+                          : null,
                     ),
                     const SizedBox(height: 10),
                     TextFormField(
@@ -1917,13 +2358,21 @@ class _ProfilePageState extends State<ProfilePage> {
                     const SizedBox(height: 10),
                     DropdownButtonFormField<String>(
                       value: _gender.isNotEmpty ? _gender : null,
-                      items: ['Male', 'Female', 'Other', 'Prefer not to say']
+                      items: ['Male', 'Female', 'Other']
                           .map(
-                            (e) => DropdownMenuItem(value: e, child: Text(e)),
+                            (e) => DropdownMenuItem(
+                              value: e,
+                              child: Text(
+                                e,
+                                style: const TextStyle(color: Colors.black),
+                              ),
+                            ),
                           )
                           .toList(),
                       onChanged: (v) => setState(() => _gender = v ?? ''),
                       decoration: _inputDecoration('Gender'),
+                      dropdownColor: Colors.white,
+                      style: const TextStyle(color: Colors.black),
                     ),
 
                     const Padding(
@@ -1949,25 +2398,6 @@ class _ProfilePageState extends State<ProfilePage> {
                       controller: _phoneCtrl,
                       decoration: _inputDecoration('Phone Number'),
                       keyboardType: TextInputType.phone,
-                    ),
-
-                    const Padding(
-                      padding: EdgeInsets.only(top: 18, bottom: 4),
-                      child: Text(
-                        'Counselling Preferences',
-                        style: TextStyle(
-                          fontWeight: FontWeight.bold,
-                          fontSize: 18,
-                          color: Colors.black,
-                        ),
-                      ),
-                    ),
-                    TextFormField(
-                      initialValue: _preferences,
-                      onChanged: (v) => _preferences = v,
-                      decoration: _inputDecoration(
-                        'Topics, mode, or timing preferences',
-                      ),
                     ),
 
                     const SizedBox(height: 16),
@@ -2156,7 +2586,7 @@ class WellnessExtras extends StatelessWidget {
             child: Padding(
               padding: const EdgeInsets.all(16.0),
               child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
+                crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
                   const Text(
                     'Advanced Care Support',
@@ -2167,9 +2597,84 @@ class WellnessExtras extends StatelessWidget {
                     ),
                   ),
                   const SizedBox(height: 8),
-                  const Row(
-                    children: [
-                      CircleAvatar(
+                  Center(
+                    child: InkWell(
+                      onTap: () {
+                        showDialog<void>(
+                          context: context,
+                          builder: (_) => AlertDialog(
+                            backgroundColor: Colors.white,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(16),
+                            ),
+                            title: const Text(
+                              'Advanced Care Support',
+                              style: TextStyle(
+                                color: Colors.black,
+                                fontWeight: FontWeight.bold,
+                                fontSize: 20,
+                              ),
+                            ),
+                            content: SingleChildScrollView(
+                              child: Column(
+                                mainAxisSize: MainAxisSize.min,
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: const [
+                                  Text(
+                                    'A calmer way to suggest higher-level help. Advanced Care Support offers structured steps toward personalised assistance: brief structured assessment, referral guidance to professionals, and clear next-steps if you need more support.',
+                                    style: TextStyle(
+                                      fontSize: 14,
+                                      color: Colors.black87,
+                                    ),
+                                  ),
+                                  SizedBox(height: 16),
+                                  Text(
+                                    'Our Personalized Care Program:',
+                                    style: TextStyle(
+                                      fontWeight: FontWeight.bold,
+                                      color: Colors.black,
+                                      fontSize: 16,
+                                    ),
+                                  ),
+                                  SizedBox(height: 12),
+                                  Text(
+                                    '• One-on-one professional support\n'
+                                    '• Structured assessment and guidance\n'
+                                    '• Confidential referral network\n'
+                                    '• Progress tracking and feedback\n'
+                                    '• Flexible scheduling options',
+                                    style: TextStyle(
+                                      color: Colors.black87,
+                                      height: 1.5,
+                                    ),
+                                  ),
+                                  SizedBox(height: 16),
+                                  Text(
+                                    'Reach out anytime – we\'re here to support your journey.',
+                                    style: TextStyle(
+                                      color: Colors.black87,
+                                      fontStyle: FontStyle.italic,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                            actions: [
+                              TextButton(
+                                onPressed: () => Navigator.pop(context),
+                                style: TextButton.styleFrom(
+                                  foregroundColor: _Palette.primary,
+                                ),
+                                child: const Text(
+                                  'Close',
+                                  style: TextStyle(fontSize: 16),
+                                ),
+                              ),
+                            ],
+                          ),
+                        );
+                      },
+                      child: const CircleAvatar(
                         radius: 28,
                         backgroundColor: _Palette.soft,
                         child: Icon(
@@ -2178,48 +2683,9 @@ class WellnessExtras extends StatelessWidget {
                           color: _Palette.primary,
                         ),
                       ),
-                      SizedBox(width: 12),
-                      Expanded(
-                        child: Text(
-                          'A calmer way to suggest higher-level help. Advanced Care Support offers structured steps toward personalised assistance: brief structured assessment, referral guidance to professionals, and clear next-steps if you need more support.',
-                          style: TextStyle(
-                            fontSize: 14,
-                            color: _Palette.subtext,
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 12),
-                  Align(
-                    alignment: Alignment.centerRight,
-                    child: ElevatedButton.icon(
-                      onPressed: () {
-                        // demo: show a simple dialog
-                        showDialog<void>(
-                          context: context,
-                          builder: (_) => AlertDialog(
-                            title: const Text('Learn More'),
-                            content: const Text(
-                              'Advanced Care Support details (demo).',
-                            ),
-                            actions: [
-                              TextButton(
-                                onPressed: () => Navigator.pop(context),
-                                child: const Text('Close'),
-                              ),
-                            ],
-                          ),
-                        );
-                      },
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.blue,
-                        foregroundColor: Colors.white,
-                      ),
-                      icon: const Icon(Icons.info_outline, color: Colors.white),
-                      label: const Text('Learn More'),
                     ),
                   ),
+                  const SizedBox(height: 4),
                 ],
               ),
             ),
@@ -2231,45 +2697,87 @@ class WellnessExtras extends StatelessWidget {
           LayoutBuilder(
             builder: (context, constraints) {
               final isWide = constraints.maxWidth > 600;
-              final leftCard = Card(
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12),
-                  side: const BorderSide(color: _Palette.border),
-                ),
-                elevation: 1,
-                color: const Color.fromARGB(255, 235, 242, 231),
-                child: SizedBox(
-                  height: 160,
-                  child: Padding(
-                    padding: const EdgeInsets.all(12),
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: const [
-                            Text(
-                              'Insights & Reports',
-                              style: TextStyle(fontWeight: FontWeight.w700),
-                            ),
-                            SizedBox(height: 8),
-                            Text(
-                              'Weekly mood trend: Slight improvement from last week.',
-                            ),
-                          ],
+              final leftCard = InkWell(
+                onTap: () {
+                  showDialog(
+                    context: context,
+                    builder: (_) => AlertDialog(
+                      backgroundColor: Colors.white,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(16),
+                      ),
+                      title: const Text(
+                        'Insights & Reports',
+                        style: TextStyle(
+                          color: Colors.black,
+                          fontWeight: FontWeight.bold,
+                          fontSize: 20,
                         ),
-                        Align(
-                          alignment: Alignment.bottomRight,
-                          child: ElevatedButton(
-                            onPressed: () =>
-                                onOpenFeature('Insights & Reports'),
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: Colors.white,
-                              foregroundColor: Colors.black,
-                            ),
-                            child: const Text('View'),
+                      ),
+                      content: const SingleChildScrollView(
+                        child: Text(
+                          'Weekly mood trend: Slight improvement from last week.\n\n'
+                          'Track your emotional patterns, mood history, and progress over time. '
+                          'Get personalized insights based on your interactions and activities.',
+                          style: TextStyle(fontSize: 14, color: Colors.black87),
+                        ),
+                      ),
+                      actions: [
+                        TextButton(
+                          onPressed: () => Navigator.pop(context),
+                          style: TextButton.styleFrom(
+                            foregroundColor: _Palette.primary,
                           ),
+                          child: const Text(
+                            'Close',
+                            style: TextStyle(fontSize: 16),
+                          ),
+                        ),
+                      ],
+                    ),
+                  );
+                },
+                child: Card(
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                    side: const BorderSide(color: _Palette.border),
+                  ),
+                  elevation: 3,
+                  color: const Color(
+                    0xFFF5F9FF,
+                  ), // Soft blue-white for Insights
+                  child: SizedBox(
+                    height: 160,
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Container(
+                          padding: const EdgeInsets.all(20),
+                          decoration: BoxDecoration(
+                            color: const Color(0xFF1E4D8C), // Classic navy blue
+                            borderRadius: BorderRadius.circular(16),
+                            boxShadow: [
+                              BoxShadow(
+                                color: Color(0xFF1E4D8C).withOpacity(0.3),
+                                blurRadius: 8,
+                                offset: const Offset(0, 4),
+                              ),
+                            ],
+                          ),
+                          child: const Icon(
+                            Icons.insights,
+                            size: 48,
+                            color: Colors.white,
+                          ),
+                        ),
+                        const SizedBox(height: 12),
+                        const Text(
+                          'Insights & Reports',
+                          style: TextStyle(
+                            fontWeight: FontWeight.w700,
+                            fontSize: 14,
+                          ),
+                          textAlign: TextAlign.center,
                         ),
                       ],
                     ),
@@ -2277,44 +2785,106 @@ class WellnessExtras extends StatelessWidget {
                 ),
               );
 
-              final rightCard = Card(
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12),
-                  side: const BorderSide(color: _Palette.border),
-                ),
-                elevation: 1,
-                color: const Color.fromARGB(255, 235, 242, 231),
-                child: SizedBox(
-                  height: 160,
-                  child: Padding(
-                    padding: const EdgeInsets.all(12),
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: const [
-                            Text(
-                              'MindCare Booster',
-                              style: TextStyle(fontWeight: FontWeight.w700),
-                            ),
-                            SizedBox(height: 8),
-                            Text(
-                              'A quick emotional recharge tool — with AI-guided affirmations, breathing cues, and calming music for instant relief.',
-                            ),
-                          ],
+              final rightCard = InkWell(
+                onTap: () {
+                  showDialog(
+                    context: context,
+                    builder: (_) => AlertDialog(
+                      backgroundColor: Colors.white,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(16),
+                      ),
+                      title: const Text(
+                        'MindCare Booster',
+                        style: TextStyle(
+                          color: Colors.black,
+                          fontWeight: FontWeight.bold,
+                          fontSize: 20,
                         ),
-                        Align(
-                          alignment: Alignment.bottomRight,
-                          child: ElevatedButton(
-                            onPressed: () => onOpenFeature('MindCare Booster'),
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: Colors.white,
-                              foregroundColor: Colors.black,
-                            ),
-                            child: const Text('View'),
+                      ),
+                      content: const SingleChildScrollView(
+                        child: Text(
+                          'A quick emotional recharge tool – with AI-guided affirmations, '
+                          'breathing cues, and calming music for instant relief.\n\n'
+                          'Take a moment to reset your mind with personalized exercises '
+                          'designed to boost your mood and reduce stress.',
+                          style: TextStyle(fontSize: 14, color: Colors.black87),
+                        ),
+                      ),
+                      actions: [
+                        TextButton(
+                          onPressed: () => Navigator.pop(context),
+                          style: TextButton.styleFrom(
+                            foregroundColor: _Palette.primary,
                           ),
+                          child: const Text(
+                            'Close',
+                            style: TextStyle(fontSize: 16),
+                          ),
+                        ),
+                      ],
+                    ),
+                  );
+                },
+                child: Card(
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                    side: const BorderSide(color: _Palette.border),
+                  ),
+                  elevation: 3,
+                  color: const Color(0xFFFFFAF5), // Warm white for MindCare
+                  child: SizedBox(
+                    height: 160,
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Container(
+                          padding: const EdgeInsets.all(20),
+                          decoration: BoxDecoration(
+                            gradient: const LinearGradient(
+                              begin: Alignment.topLeft,
+                              end: Alignment.bottomRight,
+                              colors: [
+                                Color(0xFF8E44AD),
+                                Color(0xFF2C3E50),
+                              ], // Deep purple to slate
+                            ),
+                            borderRadius: BorderRadius.circular(16),
+                            boxShadow: [
+                              BoxShadow(
+                                color: const Color(0xFF8E44AD).withOpacity(0.3),
+                                blurRadius: 12,
+                                offset: const Offset(0, 6),
+                              ),
+                            ],
+                          ),
+                          child: Container(
+                            decoration: BoxDecoration(
+                              color: Colors.white.withOpacity(0.2),
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                            child: const Icon(
+                              Icons.bolt,
+                              size: 52,
+                              color: Colors.white,
+                              shadows: [
+                                Shadow(
+                                  color: Colors.black26,
+                                  blurRadius: 8,
+                                  offset: Offset(0, 2),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                        const SizedBox(height: 12),
+                        const Text(
+                          'MindCare Booster',
+                          style: TextStyle(
+                            fontWeight: FontWeight.w700,
+                            fontSize: 14,
+                          ),
+                          textAlign: TextAlign.center,
                         ),
                       ],
                     ),
@@ -2333,9 +2903,14 @@ class WellnessExtras extends StatelessWidget {
                 );
               }
 
-              return Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [leftCard, const SizedBox(height: 12), rightCard],
+              // Mobile view - also side by side
+              return Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Expanded(child: leftCard),
+                  const SizedBox(width: 12),
+                  Expanded(child: rightCard),
+                ],
               );
             },
           ),
@@ -2377,25 +2952,6 @@ class WellnessExtras extends StatelessWidget {
                     ],
                   ),
                   const SizedBox(height: 14),
-                  Align(
-                    alignment: Alignment.centerRight,
-                    child: ElevatedButton.icon(
-                      onPressed: () {
-                        // demo: start a placeholder session
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(
-                            content: Text('Starting session (demo)'),
-                          ),
-                        );
-                      },
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.blue,
-                        foregroundColor: Colors.white,
-                      ),
-                      icon: const Icon(Icons.play_arrow, color: Colors.white),
-                      label: const Text('Start Session'),
-                    ),
-                  ),
                 ],
               ),
             ),
