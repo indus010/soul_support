@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:intl/intl.dart';
 
 class ScheduleSessionPage extends StatefulWidget {
   const ScheduleSessionPage({super.key});
@@ -11,241 +10,175 @@ class ScheduleSessionPage extends StatefulWidget {
 class _ScheduleSessionPageState extends State<ScheduleSessionPage> {
   DateTime? _selectedDate;
   TimeOfDay? _selectedTime;
+  String? _selectedCounsellor;
 
-  Future<void> _selectDate() async {
-    final DateTime? picked = await showDatePicker(
+  final List<String> _counsellors = const [
+    'Alex Johnson',
+    'Priya Singh',
+    'David Chen',
+    'Maria Rodriguez',
+  ];
+
+  Future<void> _pickDate() async {
+    final now = DateTime.now();
+    final picked = await showDatePicker(
       context: context,
-      initialDate: DateTime.now(),
-      firstDate: DateTime.now(),
-      lastDate: DateTime.now().add(const Duration(days: 90)),
+      initialDate: _selectedDate ?? now,
+      firstDate: now,
+      lastDate: DateTime(now.year + 2),
       builder: (context, child) {
         return Theme(
           data: Theme.of(context).copyWith(
-            colorScheme: const ColorScheme.light(
-              primary: Colors.teal,
-              onPrimary: Colors.white,
-              surface: Colors.white,
-              onSurface: Colors.black87,
-            ),
+            colorScheme: const ColorScheme.light(primary: Colors.teal),
           ),
           child: child!,
         );
       },
     );
 
-    if (picked != null && picked != _selectedDate) {
-      setState(() {
-        _selectedDate = picked;
-      });
+    if (picked != null) {
+      setState(() => _selectedDate = picked);
     }
   }
 
-  Future<void> _selectTime() async {
-    final TimeOfDay? picked = await showTimePicker(
+  Future<void> _pickTime() async {
+    final picked = await showTimePicker(
       context: context,
-      initialTime: TimeOfDay.now(),
+      initialTime: _selectedTime ?? TimeOfDay.now(),
       builder: (context, child) {
         return Theme(
           data: Theme.of(context).copyWith(
-            colorScheme: const ColorScheme.light(
-              primary: Colors.teal,
-              onPrimary: Colors.white,
-              surface: Colors.white,
-              onSurface: Colors.black87,
-            ),
+            colorScheme: const ColorScheme.light(primary: Colors.teal),
           ),
           child: child!,
         );
       },
     );
 
-    if (picked != null && picked != _selectedTime) {
-      setState(() {
-        _selectedTime = picked;
-      });
+    if (picked != null) {
+      setState(() => _selectedTime = picked);
     }
   }
 
-  void _scheduleSession() {
-    if (_selectedDate == null || _selectedTime == null) {
+  void _saveSession() {
+    if (_selectedDate == null ||
+        _selectedTime == null ||
+        _selectedCounsellor == null) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text('Please select date and time'),
-          backgroundColor: Colors.orange,
-          duration: Duration(seconds: 2),
+          content: Text('Please select a date, a time, and a counsellor.'),
         ),
       );
       return;
     }
 
-    // Format the date and time
-    final dateStr = DateFormat('MMM dd, yyyy').format(_selectedDate!);
-    final timeStr = _selectedTime!.format(context);
-
-    // Show confirmation
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        title: Row(
-          children: const [
-            Icon(Icons.check_circle, color: Colors.teal, size: 28),
-            SizedBox(width: 12),
-            Text('Session Scheduled!', style: TextStyle(color: Colors.black87)),
-          ],
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(
+          'Session with $_selectedCounsellor on '
+          '${_formatDate(_selectedDate!)} at ${_selectedTime!.format(context)} saved!',
         ),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const Text(
-              'Your counselling session has been scheduled:',
-              style: TextStyle(
-                fontWeight: FontWeight.w500,
-                color: Colors.black87,
-              ),
-            ),
-            const SizedBox(height: 16),
-            _buildInfoRow(Icons.calendar_today, 'Date', dateStr),
-            const SizedBox(height: 8),
-            _buildInfoRow(Icons.access_time, 'Time', timeStr),
-            const SizedBox(height: 16),
-            const Text(
-              'A counsellor will be assigned to you. You will receive a reminder 30 minutes before your session.',
-              style: TextStyle(fontSize: 12, color: Colors.black54),
-            ),
-          ],
-        ),
-        actions: [
-          TextButton(
-            onPressed: () {
-              Navigator.pop(context);
-              // Clear selections
-              setState(() {
-                _selectedDate = null;
-                _selectedTime = null;
-              });
-            },
-            child: const Text(
-              'OK',
-              style: TextStyle(color: Colors.teal, fontWeight: FontWeight.bold),
-            ),
-          ),
-        ],
+        behavior: SnackBarBehavior.floating,
       ),
     );
+
+    setState(() {
+      _selectedDate = null;
+      _selectedTime = null;
+      _selectedCounsellor = null;
+    });
   }
 
-  Widget _buildInfoRow(IconData icon, String label, String value) {
-    return Row(
-      children: [
-        Icon(icon, size: 18, color: Colors.teal),
-        const SizedBox(width: 8),
-        Text(
-          '$label: ',
-          style: const TextStyle(
-            fontWeight: FontWeight.w600,
-            color: Colors.black87,
-          ),
-        ),
-        Expanded(
-          child: Text(value, style: const TextStyle(color: Colors.black87)),
-        ),
-      ],
-    );
+  String _formatDate(DateTime date) {
+    return '${date.day.toString().padLeft(2, '0')}/'
+        '${date.month.toString().padLeft(2, '0')}/'
+        '${date.year.toString()}';
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.grey[50],
+      backgroundColor: Colors.grey.shade100,
       appBar: AppBar(
         title: const Text('Schedule Session'),
         backgroundColor: Colors.teal,
         foregroundColor: Colors.white,
-        elevation: 0,
       ),
       body: SingleChildScrollView(
-        padding: const EdgeInsets.all(20),
+        padding: const EdgeInsets.all(24),
         child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Header
-            const Text(
-              'Book Your Counselling Session',
-              style: TextStyle(
-                fontSize: 24,
-                fontWeight: FontWeight.bold,
-                color: Colors.black87,
+            Text(
+              'Plan your counselling session',
+              style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                color: Colors.teal.shade700,
+                fontWeight: FontWeight.w600,
               ),
             ),
             const SizedBox(height: 8),
-            const Text(
-              'Select a date and time for your session',
-              style: TextStyle(fontSize: 14, color: Colors.black54),
+            Text(
+              'Choose a convenient date, time, and counsellor to get started.',
+              style: Theme.of(
+                context,
+              ).textTheme.bodyMedium?.copyWith(color: Colors.grey.shade700),
             ),
             const SizedBox(height: 32),
-
-            // Date Selection Card
-            _buildSelectionCard(
-              icon: Icons.calendar_today,
-              title: 'Select Date',
-              value: _selectedDate != null
-                  ? DateFormat('EEEE, MMM dd, yyyy').format(_selectedDate!)
-                  : 'Choose a date',
-              onTap: _selectDate,
-            ),
-            const SizedBox(height: 16),
-
-            // Time Selection Card
-            _buildSelectionCard(
-              icon: Icons.access_time,
-              title: 'Select Time',
-              value: _selectedTime != null
-                  ? _selectedTime!.format(context)
-                  : 'Choose a time',
-              onTap: _selectTime,
-            ),
-            const SizedBox(height: 32),
-
-            // Add New Event Button
-            ElevatedButton(
-              onPressed: _scheduleSession,
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.teal,
-                foregroundColor: Colors.white,
-                padding: const EdgeInsets.symmetric(vertical: 16),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12),
+            _FormCard(
+              children: [
+                _InputLabel(title: 'Date'),
+                _SelectorButton(
+                  label: _selectedDate != null
+                      ? _formatDate(_selectedDate!)
+                      : 'Select date',
+                  icon: Icons.calendar_today,
+                  onPressed: _pickDate,
                 ),
-                elevation: 2,
-              ),
-              child: const Text(
-                'Add New Event',
-                style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-              ),
+                const SizedBox(height: 20),
+                _InputLabel(title: 'Time'),
+                _SelectorButton(
+                  label: _selectedTime != null
+                      ? _selectedTime!.format(context)
+                      : 'Select time',
+                  icon: Icons.access_time,
+                  onPressed: _pickTime,
+                ),
+                const SizedBox(height: 20),
+                _InputLabel(title: 'Counsellor'),
+                DropdownButtonFormField<String>(
+                  value: _selectedCounsellor,
+                  decoration: _dropdownDecoration(),
+                  icon: const Icon(Icons.arrow_drop_down, color: Colors.teal),
+                  style: Theme.of(context).textTheme.bodyLarge,
+                  items: _counsellors
+                      .map(
+                        (counsellor) => DropdownMenuItem(
+                          value: counsellor,
+                          child: Text(counsellor),
+                        ),
+                      )
+                      .toList(),
+                  onChanged: (value) =>
+                      setState(() => _selectedCounsellor = value),
+                ),
+              ],
             ),
-            const SizedBox(height: 16),
-
-            // Info Text
-            Container(
-              padding: const EdgeInsets.all(16),
-              decoration: BoxDecoration(
-                color: Colors.teal.shade50,
-                borderRadius: BorderRadius.circular(12),
-                border: Border.all(color: Colors.teal.shade100),
-              ),
-              child: Row(
-                children: const [
-                  Icon(Icons.info_outline, color: Colors.teal, size: 20),
-                  SizedBox(width: 12),
-                  Expanded(
-                    child: Text(
-                      'A counsellor will be automatically assigned based on availability. Sessions are typically 50 minutes long.',
-                      style: TextStyle(fontSize: 12, color: Colors.black87),
-                    ),
+            const SizedBox(height: 32),
+            SizedBox(
+              width: double.infinity,
+              child: ElevatedButton(
+                onPressed: _saveSession,
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.teal,
+                  padding: const EdgeInsets.symmetric(vertical: 16),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(16),
                   ),
-                ],
+                ),
+                child: const Text(
+                  'Add New Event',
+                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+                ),
               ),
             ),
           ],
@@ -254,72 +187,100 @@ class _ScheduleSessionPageState extends State<ScheduleSessionPage> {
     );
   }
 
-  Widget _buildSelectionCard({
-    required IconData icon,
-    required String title,
-    required String value,
-    required VoidCallback onTap,
-  }) {
-    final isSelected = value != 'Choose a date' && value != 'Choose a time';
-
-    return Card(
-      color: Colors.white,
-      elevation: 2,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(12),
-        side: BorderSide(
-          color: isSelected ? Colors.teal : Colors.grey.shade200,
-          width: isSelected ? 2 : 1,
-        ),
+  InputDecoration _dropdownDecoration() {
+    return InputDecoration(
+      contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+      filled: true,
+      fillColor: Colors.white,
+      enabledBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(14),
+        borderSide: BorderSide(color: Colors.teal.shade100),
       ),
-      child: InkWell(
-        onTap: onTap,
-        borderRadius: BorderRadius.circular(12),
-        child: Padding(
-          padding: const EdgeInsets.all(16),
-          child: Row(
-            children: [
-              Container(
-                padding: const EdgeInsets.all(12),
-                decoration: BoxDecoration(
-                  color: Colors.teal.shade50,
-                  borderRadius: BorderRadius.circular(10),
-                ),
-                child: Icon(icon, color: Colors.teal, size: 24),
-              ),
-              const SizedBox(width: 16),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      title,
-                      style: const TextStyle(
-                        fontSize: 12,
-                        color: Colors.black54,
-                        fontWeight: FontWeight.w500,
-                      ),
-                    ),
-                    const SizedBox(height: 4),
-                    Text(
-                      value,
-                      style: TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.w600,
-                        color: isSelected ? Colors.black87 : Colors.black45,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              Icon(
-                Icons.arrow_forward_ios,
-                size: 16,
-                color: Colors.grey.shade400,
-              ),
-            ],
+      focusedBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(14),
+        borderSide: const BorderSide(color: Colors.teal, width: 2),
+      ),
+    );
+  }
+}
+
+class _FormCard extends StatelessWidget {
+  const _FormCard({required this.children});
+
+  final List<Widget> children;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(20),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.05),
+            blurRadius: 12,
+            offset: const Offset(0, 6),
           ),
-        ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: children,
+      ),
+    );
+  }
+}
+
+class _InputLabel extends StatelessWidget {
+  const _InputLabel({required this.title});
+
+  final String title;
+
+  @override
+  Widget build(BuildContext context) {
+    return Text(
+      title,
+      style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+        fontWeight: FontWeight.w600,
+        color: Colors.grey.shade800,
+      ),
+    );
+  }
+}
+
+class _SelectorButton extends StatelessWidget {
+  const _SelectorButton({
+    required this.label,
+    required this.icon,
+    required this.onPressed,
+  });
+
+  final String label;
+  final IconData icon;
+  final VoidCallback onPressed;
+
+  @override
+  Widget build(BuildContext context) {
+    return ElevatedButton(
+      onPressed: onPressed,
+      style: ElevatedButton.styleFrom(
+        backgroundColor: Colors.teal.shade50,
+        foregroundColor: Colors.teal.shade700,
+        elevation: 0,
+        padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 16),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+      ),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Text(
+            label,
+            style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
+          ),
+          Icon(icon),
+        ],
       ),
     );
   }

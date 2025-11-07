@@ -1,6 +1,10 @@
 ﻿import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'dart:async';
+import 'pages/schedule_session_page.dart';
+import 'pages/assesment_page.dart';
+import 'pages/expert_connect_page.dart';
+import 'pages/meditation_page.dart';
 
 void main() {
   runApp(const SoulSupportApp());
@@ -48,6 +52,10 @@ class SoulSupportApp extends StatelessWidget {
         '/privacy': (_) => const PrivacyPage(),
         '/contact': (_) => ContactPage(),
         '/history': (_) => const HistoryCenterPage(),
+        '/schedule': (_) => const ScheduleSessionPage(),
+        '/assessment': (_) => const AIAssessmentPage(),
+        '/expert-connect': (_) => const ExpertConnectPage(),
+        '/meditation': (_) => const MeditationPage(),
       },
       initialRoute: '/',
     );
@@ -980,6 +988,32 @@ class _DashboardPageState extends State<DashboardPage> {
   }
 
   void _openFeature(String name) {
+    // Navigate to the Schedule Session page instead of showing a modal
+    if (name == 'Schedule') {
+      Navigator.pushNamed(context, '/schedule');
+      return;
+    }
+
+    // Navigate to AI Assessment page
+    if (name == 'Mental Health' ||
+        name == 'AI Assessment' ||
+        name == 'Assessment') {
+      Navigator.pushNamed(context, '/assessment');
+      return;
+    }
+
+    // Navigate to Expert Connect page
+    if (name == 'Expert Connect') {
+      Navigator.pushNamed(context, '/expert-connect');
+      return;
+    }
+
+    // Navigate to Meditation page
+    if (name == 'Meditation') {
+      Navigator.pushNamed(context, '/meditation');
+      return;
+    }
+
     final Map<String, String> featureContents = {
       'My Wellness Plan':
           'Personalized daily mental-wellness roadmap.\n\n'
